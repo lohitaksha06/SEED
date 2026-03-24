@@ -411,9 +411,9 @@ create policy conversation_participants_select_participants
   using (
     exists (
       select 1
-      from public.conversation_participants cp2
-      where cp2.conversation_id = conversation_participants.conversation_id
-        and cp2.user_id = auth.uid()
+      from public.conversations c
+      where c.id = conversation_participants.conversation_id
+        and auth.uid() in (c.buyer_id, c.seller_id)
     )
   );
 

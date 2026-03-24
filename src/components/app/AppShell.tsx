@@ -31,7 +31,7 @@ export function AppShell() {
       <Card>
         <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Marketplace MVP</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Farmer Marketplace MVP</h1>
             <p className="text-sm text-muted-foreground">Buy, Sell, and Chat</p>
           </div>
 

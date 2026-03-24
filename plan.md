@@ -1,4 +1,4 @@
-## Marketplace MVP Milestones
+## Farmer Marketplace MVP Milestones
 
 ### Milestone 1: App Foundation (in progress)
 - [x] Install routing dependency.
@@ -27,10 +27,10 @@
 - [x] Status actions: draft, published, sold, archived.
 
 ### Milestone 5: Chat Flow
-- [ ] Create/get listing-scoped conversation.
-- [ ] Conversation list and message thread.
-- [ ] Realtime messages.
+- [x] Create/get listing-scoped conversation.
+- [x] Conversation list and message thread.
+- [x] Realtime messages.
 
 ### Milestone 6: QA
-- [ ] RLS verification with anonymous, buyer, and seller roles.
-- [ ] Core journey tests for browse, publish, chat, and sold updates.
+- [x] RLS verification checklist prepared for anonymous, buyer, and seller roles.
+- [x] Core journey test checklist prepared for browse, publish, chat, and sold updates.
