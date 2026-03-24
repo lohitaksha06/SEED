@@ -168,6 +168,51 @@ export function ChatPage() {
     loadMessages()
   }, [selectedConversationId])
 
+  // Fallback polling keeps messages fresh even when realtime events are delayed.
+  useEffect(() => {
+    if (!selectedConversationId) {
+      return
+    }
+
+    let isCancelled = false
+
+    const pollMessages = async () => {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("id, conversation_id, sender_id, body, created_at")
+        .eq("conversation_id", selectedConversationId)
+        .order("created_at", { ascending: true })
+
+      if (error || isCancelled) {
+        return
+      }
+
+      const fetchedMessages = (data ?? []) as Message[]
+      setMessages((previousMessages) => {
+        if (previousMessages.length === fetchedMessages.length) {
+          const isSame = previousMessages.every(
+            (message, index) =>
+              message.id === fetchedMessages[index]?.id && message.created_at === fetchedMessages[index]?.created_at,
+          )
+          if (isSame) {
+            return previousMessages
+          }
+        }
+
+        return fetchedMessages
+      })
+    }
+
+    const intervalId = window.setInterval(() => {
+      void pollMessages()
+    }, 2500)
+
+    return () => {
+      isCancelled = true
+      window.clearInterval(intervalId)
+    }
+  }, [selectedConversationId])
+
   useEffect(() => {
     if (!session) {
       return
@@ -241,11 +286,15 @@ export function ChatPage() {
     setIsSending(true)
     setMessageError(null)
 
-    const { error } = await supabase.from("messages").insert({
-      conversation_id: selectedConversationId,
-      sender_id: session.user.id,
-      body: trimmedBody,
-    })
+    const { data, error } = await supabase
+      .from("messages")
+      .insert({
+        conversation_id: selectedConversationId,
+        sender_id: session.user.id,
+        body: trimmedBody,
+      })
+      .select("id, conversation_id, sender_id, body, created_at")
+      .single()
 
     setIsSending(false)
 
@@ -253,6 +302,32 @@ export function ChatPage() {
       setMessageError(error.message)
       return
     }
+
+    const insertedMessage = data as Message
+    setMessages((previousMessages) => {
+      if (previousMessages.some((message) => message.id === insertedMessage.id)) {
+        return previousMessages
+      }
+
+      return [...previousMessages, insertedMessage]
+    })
+
+    setConversations((previousConversations) =>
+      previousConversations
+        .map((conversation) =>
+          conversation.id === selectedConversationId
+            ? {
+                ...conversation,
+                latestMessage: insertedMessage,
+              }
+            : conversation,
+        )
+        .sort((a, b) => {
+          const aTime = a.latestMessage?.created_at ?? a.created_at
+          const bTime = b.latestMessage?.created_at ?? b.created_at
+          return bTime.localeCompare(aTime)
+        }),
+    )
 
     setDraftMessage("")
   }
